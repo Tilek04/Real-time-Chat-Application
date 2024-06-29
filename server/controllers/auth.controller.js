@@ -14,10 +14,10 @@ export const signup = async (req, res) => {
 
     const user = await User.findOne({ username });
     if (user) {
-      return res.status(400).json({ error: "Username already exist" });
+      return res.status(400).json({ error: "Username already exists" });
     }
 
-    //   HASH password
+    // HASH password
     const salt = await bcrypt.genSalt(10);
     const hashPassword = await bcrypt.hash(password, salt);
 
@@ -32,21 +32,19 @@ export const signup = async (req, res) => {
       profilepic: gender === "male" ? boyProfilePic : girlProfilePic,
     });
 
-    if (newUser) {
-      // JWT Token is generating here
-      generateTokenAndSetCookie(newUser._id, res);
+    // Save user to database
+    await newUser.save();
 
-      await newUser.save();
+    // Generate JWT token and set cookie
+    generateTokenAndSetCookie(newUser._id, res);
 
-      res.status(201).json({
-        _id: newUser.id,
-        fullName: newUser.fullName,
-        username: newUser.username,
-        profilepic: newUser.profilepic,
-      });
-    } else {
-      res.status(400).json({ error: "Invalid user data" });
-    }
+    // Respond to client with user details
+    res.status(201).json({
+      _id: newUser.id,
+      fullName: newUser.fullName,
+      username: newUser.username,
+      profilepic: newUser.profilepic,
+    });
   } catch (error) {
     console.log("Error in signup controller", error.message);
     res.status(500).json({ error: "Internal Server Error" });
