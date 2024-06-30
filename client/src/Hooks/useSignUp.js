@@ -1,9 +1,12 @@
 import React, { useState } from "react";
 import toast from "react-hot-toast";
 import { json } from "react-router-dom";
+import { useAuthContext } from "../context/AuthContext";
 
 const useSignUp = () => {
   const [loading, setLoading] = useState(false);
+
+  const { authUser, setAuthUser } = useAuthContext();
 
   const signup = async ({
     fullName,
@@ -38,6 +41,13 @@ const useSignUp = () => {
       });
 
       const data = await res.json();
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      localStorage.setItem("chat-user", JSON.stringify(data));
+      setAuthUser(data);
+
       console.log(data);
     } catch (error) {
       toast.error(error.message);
